@@ -12,8 +12,6 @@ typedef register switch
 fjahdskjfhasdkjfhsdfk
 56hbjhfd
 4756475
-Anshul Choudhary
-17CS10005
 a b c d e f g h i j k l m n o p q r s t u v w x y z A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
 dhfdsKJFUKGFKfhsdh___FHgejhf
 6g58 b6dh8d JGD9
