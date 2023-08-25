@@ -26,11 +26,11 @@ digit_sequence  [0-9]+
 enumeration_constant  {identifier}
 character_constant  '{c_char_sequence}'
 c_char_sequence ({c_char})+
-c_char [^'\\n]|{escape_sequence}
+c_char [^'\\\n]|{escape_sequence}
 escape_sequence  "\'"|"\""|"\?"|"\\"|"\a"|"\b"|"\f"|"\n"|"\r"|"\t"|"\v"
 string_literal  \"{s_char_sequence}?\"
 s_char_sequence {s_char}+
-s_char [^\"\\n]|{escape_sequence}
+s_char [^\"\\\n]|{escape_sequence}
 punctuator  "["|"]"|"("|")"|"{"|"}"|"."|"->"|"++"|"--"|"&"|"*"|"+"|"-"|"~"|"!"|"/"|"%"|"<<"|">>"|"<"|">"|"<="|">="|"=="|"!="|"^"|"|"|"&&"|"||"|"?"|":"|";"|"..."|"="|"*="|"/="|"%="|"+="|"-="|"<<="|">>="|"&="|"^="|"|="|","|"#"
 whitespace  [ \t\n\v\f]
 
