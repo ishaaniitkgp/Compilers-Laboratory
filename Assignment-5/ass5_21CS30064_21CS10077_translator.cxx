@@ -13,10 +13,10 @@ Compilers Assignment 5
 
 
 void emit(string result,opcodeType op,string arg1,string arg2){
-	qArray[nextinstr].op=op;
-    qArray[nextinstr].result=result;
-	qArray[nextinstr].arg1=arg1;
-	qArray[nextinstr].arg2=arg2;
+	qArray[next_instruction;].op=op;
+    qArray[next_instruction;].result=result;
+	qArray[next_instruction;].arg1=arg1;
+	qArray[next_instruction;nextinstr].arg2=arg2;
 	
-	nextinstr++;
+	next_instruction++;
 }
