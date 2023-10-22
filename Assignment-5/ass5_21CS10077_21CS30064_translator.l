@@ -3,8 +3,6 @@
     #include <stdlib.h>
     #include "ass5_17CS10007_17CS10005_translator.h"
     #include "y.tab.h"
-    extern void yyerror(char*);
-    void comment();
     int lnum = 1;
 %}
 
