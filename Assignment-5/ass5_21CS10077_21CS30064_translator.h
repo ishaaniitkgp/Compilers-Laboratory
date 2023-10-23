@@ -60,7 +60,7 @@ struct list;
 typedef struct value{			        // flag=0 => void
 	int intval;				// flag=1 => char
 	float floatval;				// flag=2 => int 					
-	char c;					// flag=3 => float	
+	string str;					// flag=3 => float	
 	void* ptr;			   	// flag=4 => function			
 	int flag;				// flag=5 => void*
 }value; 
