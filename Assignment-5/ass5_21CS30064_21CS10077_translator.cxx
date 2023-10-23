@@ -11,6 +11,143 @@ Compilers Assignment 5
 #include "ass5_21CS10077_21CS30064_translator.h"
 #include "y.tab.h"
 
+SymbolTable* newTable(){
+	return new SymbolTable;
+}
+
+SymbolNode* lookup(SymbolTable* symtab,string name){
+	int i=0;
+	//for(i=0;i<st->count;i++)
+    while(i!=symtab->count){
+		if(symtab->symbol[i].name==name)
+			return &(symtab->symbol[i]);
+        i++;    
+    }        
+
+    i=0;
+
+	//for(i=0;i<globalTable->count;i++)
+    while(i!=globalTable->count){
+		if(globalTable->symbol[i].name==name)
+			return &(globalTable->symbol[i]);
+        i++;
+    }        
+
+	symtab->symbol[symtab->count].name=name;
+	symtab->count = symtab->count + 1;
+    int j= symtab->count-1
+	return &(symtab->symbol[j]);
+}
+
+SymbolNode* gentemp(SymbolTable* symtab){
+	char temp[20];                               // temporary name
+    sprintf(temp,"t%02d",num_of_temp++);         // generate temporary name
+	return lookup(symtab,temp);                  // add temporary to symbol table
+}
+
+void update(SymbolTable* symtab,SymbolNode* sp,string type){
+	if(type!=""){
+		sp->type=type;
+		if(sp->arglist!=NULL){
+			if(sp->arglist->index==0)
+				sp->size=4;	
+		}
+		else if(type=="int")
+			sp->size=4;
+		else if(type=="float")
+			sp->size=4;
+		else if(type=="char") 
+			sp->size=1;
+		else if(type=="void")
+			sp->size=0;
+		else if(type=="function")
+			sp->size=0;
+	}
+}
+
+void printSymbolTable(){
+	int i,j=0;
+	SymbolTable sp;
+	printf("%5s %50s %15s %5s %7s %15s\n\n","NAME","TYPE","INITIAL VALUE","SIZE","OFFSET","NESTED TABLE");
+	printf("GlobalTable\n");
+	while(j!=globalTable->count){
+		if(globalTable->symbol[j].arglist==NULL)
+			printf("%5s %50s %15s %5d %7d %15p\n",globalTable->symbol[j].name.c_str(),globalTable->symbol[j].type.c_str(),"NULL",globalTable->symbol[j].size,globalTable->symbol[j].offset,globalTable->symbol[j].nested_table);
+		else{
+			string str,str_end=globalTable->symbol[j].type;
+			List* temp=globalTable->symbol[j].arglist;
+			while(temp!=NULL){
+				if(temp->index==0)
+					str+="ptr(";
+				else{
+					char t[20];
+					sprintf(t,"%d",temp->index);
+					str+="array("+string(t)+",";
+				}
+				str_end+=")";
+				temp=temp->next;
+			}
+			str+=str_end;
+			printf("%5s %50s %15s %5d %7d %15p\n",globalTable->symbol[j].name.c_str(),str.c_str(),"NULL",globalTable->symbol[j].size,globalTable->symbol[j].offset,globalTable->symbol[j].nested_table);
+		}
+        j++
+	}
+
+    j=0;
+
+	while(j!=globalTable->count){
+		if(globalTable->symbol[j].nested_table==NULL)
+			continue;
+		printf("\n%s Function\n",globalTable->symbol[j].name.c_str());
+		sp=*(globalTable->symbol[j].nested_table);
+		int offset=0;
+		for(i=0;i<sp.count;i++){
+			sp.symbol[i].offset=offset;
+			offset+=sp.symbol[i].size;
+			printf("%5s ",sp.symbol[i].name.c_str());
+			string str,str_end=sp.symbol[i].type;
+			if(sp.symbol[i].arglist!=NULL){
+				List* temp=sp.symbol[i].arglist;
+				while(temp!=NULL){
+					if(temp->index==0)
+						str+="ptr(";
+					else{
+						char t[20];
+						sprintf(t,"%d",temp->index);
+						str+="array("+string(t)+",";
+					}
+					str_end+=")";
+					temp=temp->next;
+				}
+				str+=str_end;
+				printf("%50s",str.c_str());
+				if(sp.symbol[i].arglist->index==0)
+					printf("%17p",sp.symbol[i].init_val.ptr);
+				else if(sp.symbol[i].type=="int")
+					printf("%17d",sp.symbol[i].init_val.intval);
+				else if(sp.symbol[i].type=="float")
+					printf("%17lf",sp.symbol[i].init_val.floatval);
+				else
+					printf("%17s",sp.symbol[i].init_val.str.c_str());
+			}
+			else if(sp.symbol[i].type=="int")
+				printf("%50s %15d ","int",sp.symbol[i].init_val.intval);
+			else if(sp.symbol[i].type=="float")
+				printf("%50s %15f ","float",sp.symbol[i].init_val.floatval);
+			else 
+				printf("%50s %15s ","char",sp.symbol[i].init_val.str.c_str());
+
+			printf("%5d %7d ",sp.symbol[i].size,sp.symbol[i].offset);
+			if(sp.symbol[i].next==NULL)
+				printf("%15s ","null");
+			else
+				printf("%15p ",sp.symbol[i].next);
+ 			printf("\n");
+ 		}
+        j++;
+ 	}
+ }
+
 
 void emit(string result,opcodeType op,string arg1,string arg2){
 	qArray[next_instruction].op=op;
@@ -35,7 +172,7 @@ void printquad(){
 			case(minus):
 				op="-";
 				break;
-            case(div):
+                        case(div):
 				op="/";
 				break;
 			case(mul):
@@ -53,7 +190,7 @@ void printquad(){
 			case(decrement):
 				op="--";
 				break;
-            case(nt):
+                        case(nt):
 				op="!";
 				break;
 			case(negation):
@@ -178,21 +315,21 @@ void backpatch(list *p, int index){
 
 void typecheck(SymbolNode *s1,SymbolNode* s2){
 	if(s1->type == s2->type)
-		s1->value = s2->value;
+		s1->init_val = s2->init_val;
 	else if(s1->type == "int"){
-			s1->value.ival = s2->value.dval;
-			s1->value.flag = 1;
+			s1->init_val.intval = s2->init_val.floatval;
+			s1->init_val.flag = 1;
 	}
-	else if(s2->type == "double"){
-		s1->value.dval = s2->value.ival;
-		s2->value.flag = 2;
+	else if(s2->type == "float"){
+		s1->init_val.floatval = s2->init_val.intval;
+		s2->init_val.flag = 2;
 	}
 }
 
 
 IdList* makelist(SymbolNode* sp){
 	IdList* templist = new IdList;
-	templist->id = sp;
+	templist->Id = sp;
 	return templist;
 }
 
