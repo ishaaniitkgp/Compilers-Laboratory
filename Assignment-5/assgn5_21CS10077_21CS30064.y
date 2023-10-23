@@ -268,7 +268,82 @@ unary_expression:
                             emit($2->name,minus,$2->name,"1");
                             $$=$2;
                     }
-                    | unary_operator cast_expression { printf(" unary_expression -> unary_operator cast_expression\n"); }
+                    | unary_operator cast_expression 
+                    { 
+                            switch($1){
+		                case(plus):
+			           $$=gentemp(currentTable);
+			           emit($$->name,$1,$2->name);
+			           update(currentTable,$$,$2->type);
+			           $$->init_val.flag=$2->init_val.flag;
+			
+			           break;
+		
+		                case(minus):
+			           $$=gentemp(currentTable);
+			           emit($$->name,$1,$2->name);
+			           update(currentTable,$$,$2->type);
+			           $$->init_val.flag=$2->init_val.flag;
+			           break;
+		
+		                case(mul):
+			           $$=gentemp(currentTable);
+			           emit($$->name,$1,$2->name);
+			           $$->arglist=$2->arglist->next;
+			           if($2->type=="int"){
+				      update(currentTable,$$,"int");
+				      $$->init_val.flag=1;
+			           }
+			           else if($2->type=="float"){
+				      update(currentTable,$$,"float");
+				      $$->value.flag=2;
+			           }
+			           else if($2->type=="char"){
+				      update(currentTab,$$,"char");
+				      $$->value.flag=3;
+			           }
+			           break;
+
+		                case(negation):
+			           if($2->init_val.flag==1){
+				      $$=gentemp(currentTable);
+				      update(currentTab,$$,$2->type);
+				      $$->init_val.flag=$2->init_val.flag;
+				      emit($$->name,$1,$2->name);
+			           }
+			           else
+				      cout<<"Invalid operand type"<<endl;
+			              break;
+		
+		                case(bitwiseand):
+			           $$=gentemp(currentTable);
+			           emit($$->name,$1,$2->name);
+			           $$->arglist=makelist(0);
+			           $$->arglist->next=$2->arglist;
+			           $$->init_val.flag=5;
+			           if($2->type=="int"){
+				      update(currentTable,$$,"int");
+			           }
+			           else if($2->type=="float"){
+				      update(currentTable,$$,"float");
+			           }
+			           else if($2->type=="char"){
+				      update(currentTable,$$,"char");
+			           }
+			           break;
+		
+		               case(nt):
+			           if($2->init_val.flag==1){
+				      $$=gentemp(currentTable);
+				      emit($$->name,$1,$2->name);
+				      update(currentTable,$$,$2->type);
+				      $$->init_val.flag=$2->init_val.flag;
+			           }
+			           else
+				      cout<<"Invalid operand type"<<endl;
+			           break;
+	                   }
+                    }
                     | SIZEOF unary_expression { printf(" unary_expression -> sizeof unary_expression\n"); }
                     | SIZEOF Left_Paranthesis type_name Right_Paranthesis { printf(" unary_expression -> sizeof ( type_name )\n"); }
                     ;
