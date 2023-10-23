@@ -87,7 +87,7 @@ typedef struct list{                            // Linked List of indices
 }List;
 
 typedef struct IdList{ 			        // Linked List of IDs
-	SymbolNode* id;
+	SymbolNode* Id;
 	struct IdList* next;
 }IdList;
 
