@@ -58,9 +58,9 @@ struct list;
 
 
 typedef struct value{			        // flag=0 => void
-	int intval;				// flag=1 => char
-	float floatval;				// flag=2 => int 					
-	string str;					// flag=3 => float	
+	int intval;				// flag=1 => int
+	float floatval;				// flag=2 => float					
+	string str;				// flag=3 => char	
 	void* ptr;			   	// flag=4 => function			
 	int flag;				// flag=5 => void*
 }value; 
