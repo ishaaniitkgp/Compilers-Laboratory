@@ -216,18 +216,34 @@ postfix_expression:
 	                    char strg[20];
 	                    sprintf(strg,"%d",length);
 	                    if($1->type=="void")
-	                    	emit("",FUNC,$1->name,strg);
+	                    	emit("", func,$1->name,strg);
 	                    else{
-	                    	$$=gentemp(currentTab);
-	                    	emit($$->name,FUNC,$1->name,strg);  
+	                    	$$=gentemp(currentTable);
+	                    	emit($$->name,func,$1->name,strg);  
 	                    }	
                     }
-                    | postfix_expression Dot identifier {printf(" postfix_expression -> postfix_expression . identifier : %s\n", $3);}
-                    | postfix_expression Arrow identifier {printf(" postfix_expression -> postfix_expression -> identifier :  %s\n", $3); }
-                    | postfix_expression Increment { printf(" postfix_expression -> postfix_expression ++\n"); }
-                    | postfix_expression Decrement { printf(" postfix_expression -> postfix_expression --\n"); }
-                    | Left_Paranthesis type_name Right_Paranthesis Left_Curly_Bracket initialiser_list Right_Curly_Bracket { printf(" postfix_expression -> ( type_name ) { initialiser_list }\n"); }
-                    | Left_Paranthesis type_name Right_Paranthesis Left_Curly_Bracket initialiser_list Comma Right_Curly_Bracket { printf(" postfix_expression -> ( type_name ) { initialiser_list , }\n"); }
+                    | postfix_expression Dot identifier {}
+                    | postfix_expression Arrow identifier {}
+                    | postfix_expression Increment 
+                    { 
+                            $$=gentemp(currentTable);
+                            emit($$->name,copy_assignment,$1->name);
+                            $$->init_val.intval=$1->init_val.intval;
+                            $$->init_val.flag=1;
+                            update(currentTable,$$,$1->type);
+                            emit($1->name,plus,$1->name,"1"); 
+                    }
+                    | postfix_expression Decrement 
+                    { 
+                            $$=gentemp(currentTable);
+                            emit($$->name,copy_assignment,$1->name);
+                            $$->init_val.intval=$1->init_val.intval;
+                            $$->init_val.flag=1;
+                            update(currentTable,$$,$1->type);
+                            emit($1->name,minus,$1->name,"1"); 
+                    }
+                    | Left_Paranthesis type_name Right_Paranthesis Left_Curly_Bracket initialiser_list Right_Curly_Bracket {}
+                    | Left_Paranthesis type_name Right_Paranthesis Left_Curly_Bracket initialiser_list Comma Right_Curly_Bracket {}
                     ;
 
 /*argument_expression_list_opt:
@@ -236,14 +252,22 @@ postfix_expression:
                                 ;
 */
 argument_expression_list:
-                            assignment_expression { printf(" argument_expression_list -> assignment_expression\n"); }
-                            | argument_expression_list Comma assignment_expression { printf(" argument_expression_list -> argument_expression_list , assignment_expression\n"); }
-                            ;
+                    assignment_expression { $$=makelist($1->name,$1->type); }
+                    | argument_expression_list Comma assignment_expression { $$=merge($1,makelist($3->name,$3->type)); }
+                    ;
 
 unary_expression:
-                    postfix_expression { printf(" unary_expression -> postfix_expression\n"); }
-                    | Increment unary_expression { printf(" unary_expression -> ++ unary_expression\n"); }
-                    | Decrement unary_expression { printf(" unary_expression -> -- unary_expression\n"); }
+                    postfix_expression { $$=$1; }
+                    | Increment unary_expression 
+                    { 
+                            emit($2->name,plus,$2->name,"1");
+                            $$=$2;
+                    }
+                    | Decrement unary_expression 
+                    { 
+                            emit($2->name,minus,$2->name,"1");
+                            $$=$2;
+                    }
                     | unary_operator cast_expression { printf(" unary_expression -> unary_operator cast_expression\n"); }
                     | SIZEOF unary_expression { printf(" unary_expression -> sizeof unary_expression\n"); }
                     | SIZEOF Left_Paranthesis type_name Right_Paranthesis { printf(" unary_expression -> sizeof ( type_name )\n"); }
