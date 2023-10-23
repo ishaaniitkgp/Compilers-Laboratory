@@ -344,22 +344,27 @@ unary_expression:
 			           break;
 	                   }
                     }
-                    | SIZEOF unary_expression { printf(" unary_expression -> sizeof unary_expression\n"); }
-                    | SIZEOF Left_Paranthesis type_name Right_Paranthesis { printf(" unary_expression -> sizeof ( type_name )\n"); }
+                    | SIZEOF unary_expression {}
+                    | SIZEOF Left_Paranthesis type_name Right_Paranthesis {}
                     ;
 
 unary_operator:
-                Bitwise_And { printf(" unary_operator -> &\n"); }
-                | Asterisk { printf(" unary_operator -> *\n"); }
-                | Plus { printf(" unary_operator -> +\n"); }
-                | Minus { printf(" unary_operator -> -\n"); }
-                | Tilde { printf(" unary_operator -> ~\n"); }
-                | Exclamation { printf(" unary_operator -> !\n"); }
+                Bitwise_And { $$=bitwiseand; }
+                | Asterisk { $$=mul; }
+                | Plus { $$=plus; }
+                | Minus { $$=minus; }
+                | Tilde { $$=negation; }
+                | Exclamation { $$=nt; }
                 ;
 
 cast_expression:
-                unary_expression { printf(" cast_expression -> unary_expression\n"); }
-                | Left_Paranthesis type_name Right_Paranthesis cast_expression { printf(" cast_expression -> ( type_name ) cast_expression\n"); }
+                unary_expression { $$=$1; }
+                | Left_Paranthesis type_name Right_Paranthesis cast_expression 
+                {
+                      $$=gentemp(currentTable); 
+	              $$=$4; $$->type=$2; 
+	              typecheck($$,$4);
+                }
                 ;
 
 multiplicative_expression:
