@@ -223,13 +223,13 @@ void printquad(){
 			case(notequal):
 				op="!=";
 				break;
-			case(xor):
+			case(bitwisexor):
 				op="^";
 				break;
-			case(bitor):
+			case(bitwiseor):
 				op="|";
 				break;
-			case(bitand):
+			case(bitwiseand):
 				op="&";
 				break;
 			case(question_mark):
