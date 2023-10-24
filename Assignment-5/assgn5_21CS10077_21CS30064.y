@@ -368,8 +368,30 @@ cast_expression:
                 ;
 
 multiplicative_expression:
-                            cast_expression { printf(" multiplicative_expression -> cast_expression\n"); }
-                            | multiplicative_expression Asterisk cast_expression { printf(" multiplicative_expression -> multiplicative_expression * cast_expression\n"); }
+                            cast_expression { $$=$1; }
+                            | multiplicative_expression Asterisk cast_expression 
+                            { 
+                                 $$=gentemp(currentTable);
+	                         if($1->type==$3->type){
+	                        	if($1->type=="int"){
+    		                            $$->init_val.flag=1;
+    		                            update(currentTable,$$,"int");
+    	                                }
+                                 	else if($1->type=="float"){
+    		                            $$->init_val.flag=2;
+    		                            update(currentTable,$$,"float");
+                                 	}
+                                 }
+                                 else if($1->type=="int" && $3->type=="float"){
+                                 	$$->init_val.flag=2;
+    	                                update(currentTable,$$,"float");
+                                 }
+                                 else{
+    	                                $$->init_val.flag=2;
+    	                                update(currentTable,$$,"float");
+                                 }
+                                 emit($$->name,mul,$1->name,$3->name);
+                            }
                             | multiplicative_expression Slash cast_expression { printf(" multiplicative_expression -> multiplicative_expression / cast_expression\n"); }
                             | multiplicative_expression Modulo cast_expression { printf(" multiplicative_expression -> multiplicative_expression %% cast_expression\n"); }
                             ;
