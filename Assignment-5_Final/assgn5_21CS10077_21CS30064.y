@@ -194,7 +194,7 @@ postfix_expression:
 	                    char arg2[20];
 	                    sprintf(arg2,"%d",$1->size / $1->arglist->index);
 	                    sprintf(arg2,"%d",$1->size / $1->arglist->index);
-	                    emit(temp->name,mul,$3->name,arg2);
+	                    emit(temp->name,mul,$3->name,arg2);			// emit function called along with passing of corresponding parameters and now a quadruple will be spitted accordingly
 	                    $$=gentemp(currentTable);                       // generate a new temporary variable in symbol table and store the value in it
 	                    emit($$->name,array,$1->name,temp->name);
 	                    $$->init_val=$1->init_val;
