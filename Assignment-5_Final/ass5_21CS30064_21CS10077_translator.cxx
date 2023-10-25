@@ -420,7 +420,7 @@ int main(){
 	if(yyparse()==0) 
 		printf("Successfully Parsed\n");
 	else 
-		printf("Parsing Error\n");
+		printf("Error in parsing\n");
 
 	// Print the symbol table and quadruples generated during compilation.
 	printSymbolTable();
