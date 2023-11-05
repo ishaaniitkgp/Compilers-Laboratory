@@ -2,7 +2,7 @@
 
 #include <bits/stdc++.h>
 #include <sstream>
-#include "assgn6_19CS30033_19CS30036_translator.h"
+#include "ass6_21CS10077_21CS30064_translator.h"
 
 extern int yylex();
 void yyerror(string s);
