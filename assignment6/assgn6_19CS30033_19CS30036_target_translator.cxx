@@ -49,6 +49,15 @@ void ActivationRec(symTable *S) {
     return;
 }
 
+bool isFloatingPoint(const std::string& s) {
+    try {
+        std::stof(s);  // Try to convert the string to float
+        return true;
+    } catch (const std::invalid_argument&) {
+        return false;  // Conversion failed, not a valid floating-point value
+    }
+}
+
 // generate ASM
 void ASMgenerate() {
     Qarr = QArray.array;
@@ -138,6 +147,25 @@ void ASMgenerate() {
                     int vd = atoi(m->val.c_str());
                     sout << "\t.byte\t" << vd << "\n";
                 }
+            } else if (ch == "FLOAT") {
+            if (m->val == "")
+                sout << "\t.comm\t" << nm << ", 4, 4"
+                     << "\n";
+            else {
+                sout << "\t.globl\t" << nm << "\n";
+                sout << "\t.data"
+                     << "\n";
+                sout << "\t.align 4"
+                     << "\n";
+                sout << "\t.type\t" << nm << ", @object"
+                     << "\n";
+                sout << "\t.size\t" << nm << ", 4"
+                     << "\n";
+                sout << nm << ":"
+                     << "\n";
+                float vd = std::stof(m->val);  // Convert the string to float
+                sout << "\t.float\t" << vd << "\n";
+            }
             }
         }
     }
@@ -183,10 +211,28 @@ void ASMgenerate() {
             // Binary Operations
             // addition operation
             if (op == "ADD") {
-                bool flag = true;
-                if (s.empty() || ((!isdigit(s[0])) && (s[0] != '-') && (s[0] != '+')))
-                    flag = false;
-                else {
+                bool flag1 = true;
+                bool flag2 = true;
+                
+                // Check if arg1 and arg2 are floating-point values
+                if (s.empty() || !isFloatingPoint(s)) {
+                    flag1 = false;
+                }
+                if (!isFloatingPoint(ST->AR[arg2])) {
+        flag2 = false;
+    }
+                
+                if (flag1 && flag2) {
+        // Both arg1 and arg2 are floating-point values
+        sout << "flds \t" << ST->AR[arg1] << "(%rbp)" << endl;
+        sout << "fadds \t" << ST->AR[arg2] << "(%rbp)" << endl;
+        sout << "fstps \t" << ST->AR[result] << "(%rbp)" << endl;
+                } 
+                else if(!(flag1 || flag2)){
+                     bool flag = true;
+                            if (s.empty() || ((!isdigit(s[0])) && (s[0] != '-') && (s[0] != '+')))
+                                flag = false;
+                            else {
                     char *p;
                     strtol(s.c_str(), &p, 10);
                     if (*p == 0)
@@ -194,9 +240,9 @@ void ASMgenerate() {
                     else
                         flag = false;
                 }
-                if (flag) {
+                            if (flag) {
                     sout << "addl \t$" << atoi(arg2.c_str()) << ", " << ST->AR[arg1] << "(%rbp)";
-                } else {
+                            } else {
                     sout << "movl \t" << ST->AR[arg1] << "(%rbp), "
                          << "%eax" << endl;
                     sout << "\tmovl \t" << ST->AR[arg2] << "(%rbp), "
@@ -204,15 +250,49 @@ void ASMgenerate() {
                     sout << "\taddl \t%edx, %eax\n";
                     sout << "\tmovl \t%eax, " << ST->AR[result] << "(%rbp)";
                 }
+                }
+                else {
+        // At least one of arg1 or arg2 is not a floating-point value
+        sout << "movss \t" << ST->AR[arg1] << "(%rbp), %xmm0" << endl;
+        sout << "movss \t" << ST->AR[arg2] << "(%rbp), %xmm1" << endl;
+        sout << "addss \t%xmm1, %xmm0" << endl;
+        sout << "movss \t%xmm0, " << ST->AR[result] << "(%rbp)" << endl;
+    }
+                           
             }
             // subtract operation
             else if (op == "SUB") {
-                sout << "movl \t" << ST->AR[arg1] << "(%rbp), "
-                     << "%eax" << endl;
-                sout << "\tmovl \t" << ST->AR[arg2] << "(%rbp), "
-                     << "%edx" << endl;
-                sout << "\tsubl \t%edx, %eax\n";
-                sout << "\tmovl \t%eax, " << ST->AR[result] << "(%rbp)";
+                bool flag1 = true;
+                bool flag2 = true;
+            
+                // Check if arg1 and arg2 are floating-point values
+                if (s.empty() || !isFloatingPoint(s)) {
+                    flag1 = false;
+                }
+                if (!isFloatingPoint(ST->AR[arg2])) {
+                    flag2 = false;
+                }
+            
+                if (flag1 && flag2) {
+                    // Both arg1 and arg2 are floating-point values
+                    sout << "flds \t" << ST->AR[arg1] << "(%rbp)" << endl;
+                    sout << "fsubs \t" << ST->AR[arg2] << "(%rbp)" << endl;
+                    sout << "fstps \t" << ST->AR[result] << "(%rbp)" << endl;
+                } 
+                else if(!(flag1 || flag2)){
+                     sout << "movl \t" << ST->AR[arg1] << "(%rbp), " << "%eax" << endl;
+                     sout << "\tmovl \t" << ST->AR[arg2] << "(%rbp), " << "%edx" << endl;
+                     sout << "\tsubl \t%edx, %eax\n";
+                     sout << "\tmovl \t%eax, " << ST->AR[result] << "(%rbp)";
+                }
+                else {
+                    // At least one of arg1 or arg2 is not a floating-point value
+                    sout << "movss \t" << ST->AR[arg1] << "(%rbp), %xmm0" << endl;
+                    sout << "movss \t" << ST->AR[arg2] << "(%rbp), %xmm1" << endl;
+                    sout << "subss \t%xmm1, %xmm0" << endl;
+                    sout << "movss \t%xmm0, " << ST->AR[result] << "(%rbp)" << endl;
+                }
+               
             }
             // multiplcation operator
             else if (op == "MULT") {
