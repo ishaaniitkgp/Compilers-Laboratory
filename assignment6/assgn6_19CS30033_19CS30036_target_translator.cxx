@@ -215,10 +215,10 @@ void ASMgenerate() {
                 bool flag2 = true;
                 
                 // Check if arg1 and arg2 are floating-point values
-                if (s.empty() || !isFloatingPoint(s)) {
+                if (s.empty() || !isFloatingPoint(arg1)) {
                     flag1 = false;
                 }
-                if (!isFloatingPoint(ST->AR[arg2])) {
+                if (!isFloatingPoint(arg2)) {
         flag2 = false;
     }
                 
@@ -266,10 +266,10 @@ void ASMgenerate() {
                 bool flag2 = true;
             
                 // Check if arg1 and arg2 are floating-point values
-                if (s.empty() || !isFloatingPoint(s)) {
+                if (s.empty() || !isFloatingPoint(arg1)) {
                     flag1 = false;
                 }
-                if (!isFloatingPoint(ST->AR[arg2])) {
+                if (!isFloatingPoint(arg2)) {
                     flag2 = false;
                 }
             
@@ -300,10 +300,10 @@ void ASMgenerate() {
                  bool flag2 = true;
 
                 // Check if arg1 and arg2 are floating-point values
-                if (s.empty() || !isFloatingPoint(s)) {
+                if (s.empty() || !isFloatingPoint(arg1)) {
                     flag1 = false;
                 }
-                if (!isFloatingPoint(ST->AR[arg2])) {
+                if (!isFloatingPoint(arg2)) {
                     flag2 = false;
                 }
 
@@ -356,10 +356,10 @@ void ASMgenerate() {
                 bool flag2 = true;
 
     // Check if arg1 and arg2 are floating-point values
-    if (s.empty() || !isFloatingPoint(s)) {
+    if (s.empty() || !isFloatingPoint(arg1)) {
         flag1 = false;
     }
-    if (!isFloatingPoint(ST->AR[arg2])) {
+    if (!isFloatingPoint(arg2)) {
         flag2 = false;
     }
 
@@ -457,10 +457,10 @@ void ASMgenerate() {
                 bool flag2 = true;
                 
                 // Check if arg1 and arg2 are floating-point values
-                if (s.empty() || !isFloatingPoint(s)) {
+                if (s.empty() || !isFloatingPoint(arg1)) {
                     flag1 = false;
                 }
-                if (!isFloatingPoint(ST->AR[arg2])) {
+                if (!isFloatingPoint(arg2)) {
         flag2 = false;
     }
                 if (flag1 && flag2){
@@ -478,10 +478,10 @@ void ASMgenerate() {
                 bool flag2 = true;
                 
                 // Check if arg1 and arg2 are floating-point values
-                if (s.empty() || !isFloatingPoint(s)) {
+                if (s.empty() || !isFloatingPoint(arg1)) {
                     flag1 = false;
                 }
-                if (!isFloatingPoint(ST->AR[arg2])) {
+                if (!isFloatingPoint(arg2)) {
         flag2 = false;
     }
                 if (flag1 && flag2){
@@ -495,6 +495,16 @@ void ASMgenerate() {
                     sout << "\tjne .L" << (2 * countLabel + Mlabel.at(atoi(result.c_str())) + 2);
                 }
             } else if (op == "LT") {
+                bool flag1 = true;
+                bool flag2 = true;
+                
+                // Check if arg1 and arg2 are floating-point values
+                if (s.empty() || !isFloatingPoint(arg1)) {
+                    flag1 = false;
+                }
+                if (!isFloatingPoint(arg2)) {
+        flag2 = false;
+    }
                 if (flag1 && flag2){
                     sout << "movss\t" << ST->AR[arg1] << "(%rbp), %xmm0" << endl;
                     sout << "ucomiss\t" << ST->AR[arg2] << "(%rbp), %xmm0" << endl;
@@ -506,6 +516,16 @@ void ASMgenerate() {
                 sout << "\tjl .L" << (2 * countLabel + Mlabel.at(atoi(result.c_str())) + 2);
                 }
             } else if (op == "GT") {
+                bool flag1 = true;
+                bool flag2 = true;
+                
+                // Check if arg1 and arg2 are floating-point values
+                if (s.empty() || !isFloatingPoint(arg1)) {
+                    flag1 = false;
+                }
+                if (!isFloatingPoint(arg2)) {
+        flag2 = false;
+    }
                  if (flag1 && flag2){
                     sout << "movss\t" << ST->AR[arg1] << "(%rbp), %xmm0" << endl;
                     sout << "ucomiss\t" << ST->AR[arg2] << "(%rbp), %xmm0" << endl;
@@ -517,6 +537,16 @@ void ASMgenerate() {
                     sout << "\tjg .L" << (2 * countLabel + Mlabel.at(atoi(result.c_str())) + 2);
                 }
             } else if (op == "GE") {
+                bool flag1 = true;
+                bool flag2 = true;
+                
+                // Check if arg1 and arg2 are floating-point values
+                if (s.empty() || !isFloatingPoint(arg1)) {
+                    flag1 = false;
+                }
+                if (!isFloatingPoint(arg2)) {
+        flag2 = false;
+    }
                 if (flag1 && flag2){
                     sout << "movss\t" << ST->AR[arg1] << "(%rbp), %xmm0" << endl;
                     sout << "ucomiss\t" << ST->AR[arg2] << "(%rbp), %xmm0" << endl;
@@ -528,6 +558,16 @@ void ASMgenerate() {
                     sout << "\tjge .L" << (2 * countLabel + Mlabel.at(atoi(result.c_str())) + 2);
                 }
             } else if (op == "LE") {
+                bool flag1 = true;
+                bool flag2 = true;
+                
+                // Check if arg1 and arg2 are floating-point values
+                if (s.empty() || !isFloatingPoint(arg1)) {
+                    flag1 = false;
+                }
+                if (!isFloatingPoint(arg2)) {
+        flag2 = false;
+    }
                     if (flag1 && flag2){
                         sout << "movss\t" << ST->AR[arg1] << "(%rbp), %xmm0" << endl;
                         sout << "ucomiss\t" << ST->AR[arg2] << "(%rbp), %xmm0" << endl;
