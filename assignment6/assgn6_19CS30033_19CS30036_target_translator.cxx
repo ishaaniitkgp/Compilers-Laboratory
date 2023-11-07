@@ -296,7 +296,24 @@ void ASMgenerate() {
             }
             // multiplcation operator
             else if (op == "MULT") {
-                sout << "movl \t" << ST->AR[arg1] << "(%rbp), "
+                 bool flag1 = true;
+                 bool flag2 = true;
+
+                // Check if arg1 and arg2 are floating-point values
+                if (s.empty() || !isFloatingPoint(s)) {
+                    flag1 = false;
+                }
+                if (!isFloatingPoint(ST->AR[arg2])) {
+                    flag2 = false;
+                }
+
+                if (flag1 && flag2) {
+                    // Both arg1 and arg2 are floating-point values
+                    sout << "flds \t" << ST->AR[arg1] << "(%rbp)" << endl;
+                    sout << "fmuls \t" << ST->AR[arg2] << "(%rbp)" << endl;
+                    sout << "fstps \t" << ST->AR[result] << "(%rbp)" << endl;
+                } else if(!(flag1 || flag2)){
+                    sout << "movl \t" << ST->AR[arg1] << "(%rbp), "
                      << "%eax" << endl;
                 bool flag = true;
                 if (s.empty() || ((!isdigit(s[0])) && (s[0] != '-') && (s[0] != '+')))
@@ -319,17 +336,54 @@ void ASMgenerate() {
                     }
                     theMap[result] = atoi(arg2.c_str()) * atoi(val.c_str());
                 } else
-                    sout << "\timull \t" << ST->AR[arg2] << "(%rbp), "
-                         << "%eax" << endl;
+                    sout << "\timull \t" << ST->AR[arg2] << "(%rbp), "<< "%eax" << endl;
                 sout << "\tmovl \t%eax, " << ST->AR[result] << "(%rbp)";
+                    
+                    
+                }
+                else{
+                // At least one of arg1 or arg2 is not a floating-point value
+                    sout << "movss \t" << ST->AR[arg1] << "(%rbp), %xmm0" << endl;
+                    sout << "movss \t" << ST->AR[arg2] << "(%rbp), %xmm1" << endl;
+                    sout << "mulss \t%xmm1, %xmm0" << endl;
+                    sout << "movss \t%xmm0, " << ST->AR[result] << "(%rbp)" << endl;
+            }
             }
             // divide operation
             else if (op == "DIVIDE") {
-                sout << "movl \t" << ST->AR[arg1] << "(%rbp), "
+
+                bool flag1 = true;
+                bool flag2 = true;
+
+    // Check if arg1 and arg2 are floating-point values
+    if (s.empty() || !isFloatingPoint(s)) {
+        flag1 = false;
+    }
+    if (!isFloatingPoint(ST->AR[arg2])) {
+        flag2 = false;
+    }
+
+    if (flag1 && flag2) {
+        // Both arg1 and arg2 are floating-point values
+        sout << "flds \t" << ST->AR[arg1] << "(%rbp)" << endl;
+        sout << "fdivs \t" << ST->AR[arg2] << "(%rbp)" << endl;
+        sout << "fstps \t" << ST->AR[result] << "(%rbp)" << endl;
+    }
+        else if(!(flag1 || flag2)){
+             sout << "movl \t" << ST->AR[arg1] << "(%rbp), "
                      << "%eax" << endl;
                 sout << "\tcltd" << endl;
                 sout << "\tidivl \t" << ST->AR[arg2] << "(%rbp)" << endl;
                 sout << "\tmovl \t%eax, " << ST->AR[result] << "(%rbp)";
+        }
+    else {
+        // At least one of arg1 or arg2 is not a floating-point value
+        sout << "movss \t" << ST->AR[arg1] << "(%rbp), %xmm0" << endl;
+        sout << "movss \t" << ST->AR[arg2] << "(%rbp), %xmm1" << endl;
+        sout << "divss \t%xmm1, %xmm0" << endl;
+        sout << "movss \t%xmm0, " << ST->AR[result] << "(%rbp)" << endl;
+    }
+               
             }
 
             // Bit Operators /* Ignored */
@@ -350,6 +404,13 @@ void ASMgenerate() {
             // copy
             else if (op == "EQUAL") {
                 s = arg1;
+                bool isFloat = isFloatingPoint(s);
+
+    if (isFloat) {
+        sout << "movss\t" << ST->AR[arg1] << "(%rbp), %xmm0" << endl;
+        sout << "movss\t%xmm0, " << ST->AR[result] << "(%rbp)" << endl;
+    } else {
+                
                 bool flag = true;
                 if (s.empty() || ((!isdigit(s[0])) && (s[0] != '-') && (s[0] != '+')))
                     flag = false;
@@ -368,37 +429,115 @@ void ASMgenerate() {
                     sout << "movl\t" << ST->AR[arg1] << "(%rbp), "
                          << "%eax" << endl;
                 sout << "\tmovl \t%eax, " << ST->AR[result] << "(%rbp)";
+    }
             } else if (op == "EQUALSTR") {
-                sout << "movq \t$.LC" << arg1 << ", " << ST->AR[result] << "(%rbp)";
+                bool isFloat = isFloatingPoint(arg1);
+
+                if (isFloat) {
+                    sout << "movss\t" << ST->AR[arg1] << "(%rbp), %xmm0" << endl;
+                    sout << "movss\t%xmm0, " << ST->AR[result] << "(%rbp)" << endl;
+                } else {
+                    sout << "movq\t$.LC" << arg1 << ", " << ST->AR[result] << "(%rbp)" << endl;
+            }
             } else if (op == "EQUALCHAR") {
-                sout << "movb\t$" << atoi(arg1.c_str()) << ", " << ST->AR[result] << "(%rbp)";
+                 bool isFloat = isFloatingPoint(arg1);
+
+                if (isFloat) {
+                    sout << "movss\t" << ST->AR[arg1] << "(%rbp), %xmm0" << endl;
+                    sout << "cvtss2si\t%xmm0, %eax" << endl; // Convert float to int
+                    sout << "movb\t%al, " << ST->AR[result] << "(%rbp)" << endl;
+                } else {
+                    sout << "movb\t$" << atoi(arg1.c_str()) << ", " << ST->AR[result] << "(%rbp)" << endl;
+                }
             }
 
             // Relational Operations
             else if (op == "EQOP") {
+                bool flag1 = true;
+                bool flag2 = true;
+                
+                // Check if arg1 and arg2 are floating-point values
+                if (s.empty() || !isFloatingPoint(s)) {
+                    flag1 = false;
+                }
+                if (!isFloatingPoint(ST->AR[arg2])) {
+        flag2 = false;
+    }
+                if (flag1 && flag2){
+                     sout << "movss\t" << ST->AR[arg1] << "(%rbp), %xmm0" << endl;
+                     sout << "ucomiss\t" << ST->AR[arg2] << "(%rbp), %xmm0" << endl;
+                     sout << "je .L" << (2 * countLabel + Mlabel.at(atoi(result.c_str())) + 2) << endl;
+                }
+                else{
                 sout << "movl\t" << ST->AR[arg1] << "(%rbp), %eax\n";
                 sout << "\tcmpl\t" << ST->AR[arg2] << "(%rbp), %eax\n";
                 sout << "\tje .L" << (2 * countLabel + Mlabel.at(atoi(result.c_str())) + 2);
+                }
             } else if (op == "NEOP") {
-                sout << "movl\t" << ST->AR[arg1] << "(%rbp), %eax\n";
-                sout << "\tcmpl\t" << ST->AR[arg2] << "(%rbp), %eax\n";
-                sout << "\tjne .L" << (2 * countLabel + Mlabel.at(atoi(result.c_str())) + 2);
+                bool flag1 = true;
+                bool flag2 = true;
+                
+                // Check if arg1 and arg2 are floating-point values
+                if (s.empty() || !isFloatingPoint(s)) {
+                    flag1 = false;
+                }
+                if (!isFloatingPoint(ST->AR[arg2])) {
+        flag2 = false;
+    }
+                if (flag1 && flag2){
+                    sout << "movss\t" << ST->AR[arg1] << "(%rbp), %xmm0" << endl;
+                    sout << "ucomiss\t" << ST->AR[arg2] << "(%rbp), %xmm0" << endl;
+                    sout << "jne .L" << (2 * countLabel + Mlabel.at(atoi(result.c_str())) + 2) << endl;
+                }
+                else{
+                    sout << "movl\t" << ST->AR[arg1] << "(%rbp), %eax\n";
+                    sout << "\tcmpl\t" << ST->AR[arg2] << "(%rbp), %eax\n";
+                    sout << "\tjne .L" << (2 * countLabel + Mlabel.at(atoi(result.c_str())) + 2);
+                }
             } else if (op == "LT") {
+                if (flag1 && flag2){
+                    sout << "movss\t" << ST->AR[arg1] << "(%rbp), %xmm0" << endl;
+                    sout << "ucomiss\t" << ST->AR[arg2] << "(%rbp), %xmm0" << endl;
+                    sout << "jb .L" << (2 * countLabel + Mlabel.at(atoi(result.c_str())) + 2) << endl;
+                }
+                else{
                 sout << "movl\t" << ST->AR[arg1] << "(%rbp), %eax\n";
                 sout << "\tcmpl\t" << ST->AR[arg2] << "(%rbp), %eax\n";
                 sout << "\tjl .L" << (2 * countLabel + Mlabel.at(atoi(result.c_str())) + 2);
+                }
             } else if (op == "GT") {
-                sout << "movl\t" << ST->AR[arg1] << "(%rbp), %eax\n";
-                sout << "\tcmpl\t" << ST->AR[arg2] << "(%rbp), %eax\n";
-                sout << "\tjg .L" << (2 * countLabel + Mlabel.at(atoi(result.c_str())) + 2);
+                 if (flag1 && flag2){
+                    sout << "movss\t" << ST->AR[arg1] << "(%rbp), %xmm0" << endl;
+                    sout << "ucomiss\t" << ST->AR[arg2] << "(%rbp), %xmm0" << endl;
+                    sout << "ja .L" << (2 * countLabel + Mlabel.at(atoi(result.c_str())) + 2) << endl;                 
+                 }
+                else{
+                    sout << "movl\t" << ST->AR[arg1] << "(%rbp), %eax\n";
+                    sout << "\tcmpl\t" << ST->AR[arg2] << "(%rbp), %eax\n";
+                    sout << "\tjg .L" << (2 * countLabel + Mlabel.at(atoi(result.c_str())) + 2);
+                }
             } else if (op == "GE") {
-                sout << "movl\t" << ST->AR[arg1] << "(%rbp), %eax\n";
-                sout << "\tcmpl\t" << ST->AR[arg2] << "(%rbp), %eax\n";
-                sout << "\tjge .L" << (2 * countLabel + Mlabel.at(atoi(result.c_str())) + 2);
+                if (flag1 && flag2){
+                    sout << "movss\t" << ST->AR[arg1] << "(%rbp), %xmm0" << endl;
+                    sout << "ucomiss\t" << ST->AR[arg2] << "(%rbp), %xmm0" << endl;
+                    sout << "jae .L" << (2 * countLabel + Mlabel.at(atoi(result.c_str())) + 2) << endl;
+                }
+                else{
+                    sout << "movl\t" << ST->AR[arg1] << "(%rbp), %eax\n";
+                    sout << "\tcmpl\t" << ST->AR[arg2] << "(%rbp), %eax\n";
+                    sout << "\tjge .L" << (2 * countLabel + Mlabel.at(atoi(result.c_str())) + 2);
+                }
             } else if (op == "LE") {
-                sout << "movl\t" << ST->AR[arg1] << "(%rbp), %eax\n";
-                sout << "\tcmpl\t" << ST->AR[arg2] << "(%rbp), %eax\n";
-                sout << "\tjle .L" << (2 * countLabel + Mlabel.at(atoi(result.c_str())) + 2);
+                    if (flag1 && flag2){
+                        sout << "movss\t" << ST->AR[arg1] << "(%rbp), %xmm0" << endl;
+                        sout << "ucomiss\t" << ST->AR[arg2] << "(%rbp), %xmm0" << endl;
+                        sout << "jbe .L" << (2 * countLabel + Mlabel.at(atoi(result.c_str())) + 2) << endl;
+                    }
+                else{
+                    sout << "movl\t" << ST->AR[arg1] << "(%rbp), %eax\n";
+                    sout << "\tcmpl\t" << ST->AR[arg2] << "(%rbp), %eax\n";
+                    sout << "\tjle .L" << (2 * countLabel + Mlabel.at(atoi(result.c_str())) + 2);
+                }
             } else if (op == "GOTOOP") {
                 sout << "jmp .L" << (2 * countLabel + Mlabel.at(atoi(result.c_str())) + 2);
             }
